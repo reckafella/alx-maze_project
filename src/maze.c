@@ -1,5 +1,5 @@
-<<<<<<< HEAD
 #include "./headers/maze.h"
+
 
 /**
  * game_loop - handle game loop
@@ -11,7 +11,7 @@
  *
  * Return: Nothing
 */
-void game_loop(SDL_Instance *instance, int **map, int *running, player *player, int *textured)
+void game_loop(SDL_Instance *instance, int **map, int *running, player *player)
 {
 	SDL_Event event;
 
@@ -21,37 +21,30 @@ void game_loop(SDL_Instance *instance, int **map, int *running, player *player, 
 			if (event.type == SDL_QUIT || event.key.keysym.sym == SDLK_ESCAPE)
 				running = 0;
 		update_player_position(map, player);
-		render_scene(instance, map, player, textured);
+		render_scene(instance, map, player);
 	}
 }
-=======
-#include "../headers/maze.h"
->>>>>>> 7a93dd43be4eee4c3025f0dd4ef6fff405929afb
 
 /**
  * main - entry point
  * @argc: number of arguments passed in the command line
-<<<<<<< HEAD
  * @argv: argument vector
-=======
- * @argv: vector of arguments passed in the command line
->>>>>>> 7a93dd43be4eee4c3025f0dd4ef6fff405929afb
  *
  * Return: 0 on success, 1 otherwise
 */
 int main(int argc, char **argv)
 {
-<<<<<<< HEAD
 	/* instance of SDL */
 	SDL_Instance instance;
+	instance.textured = 1;
 	/* variables to handle player position and direction when maze starts */
 
 	player player;
-	player.playerX = 2.0, player.playerY = 2.0;
-	player.playerDirX = 1.0, player.playerDirY = 0.0;
-	player.playerPlaneX = 0.0, player.playerPlaneY = 0.66;
+	player.posX = 2.0, player.posY = 2.0, player.posZ = 0.0;
+	player.dirX = 1.0, player.dirY = 0.0;
+	player.planeX = 0.0, player.planeY = 0.66;
 
-	int running = 1, textured = 0, length;
+	int running = 1, length;
 	int **maze_map;
 	char *map_path, *mp = "maps/";
 	
@@ -71,36 +64,11 @@ int main(int argc, char **argv)
 	maze_map = read_map_from_file(map_path);
 
 	init_sdl(&instance);
-	game_loop(&instance, maze_map, &running, &player, &textured);
+	game_loop(&instance, maze_map, &running, &player);
 	free_map(maze_map);
 	free(map_path);
 	destroy_maze(&instance);
 	
 
-=======
-	int game_active;
-	SDL_Instance instance;
-
-	game_active	= initialize_instance(&instance);
-
-	/* SDL_SetRenderDrawColor(instance->renderer, 0, 0, 0, 0);
-	SDL_RenderClear(instance->renderer);
-
-	SDL_RenderPresent(instance->renderer);
-	SDL_Delay(10000); */
-
-	while(game_active == 0)
-	{
-		SDL_SetRenderDrawColor(instance.renderer, 0, 0, 0, 0);
-		SDL_RenderClear(instance.renderer);
-
-		SDL_RenderPresent(instance.renderer);
-
-		/* SDL_Delay(100000); */
-		game_active = 1;
-		
-	}
-	/*destroy_instance(&instance);*/
->>>>>>> 7a93dd43be4eee4c3025f0dd4ef6fff405929afb
 	return (0);
 }

@@ -19,7 +19,7 @@ void untextured_floor_ceiling(SDL_Instance *instance, int x);
 /* maze.c */
 
 void game_loop(SDL_Instance *instance, int **map, int *running,
-		player *player, int *textured);
+		player *player);
 
 /* player.c */
 void draw_player(SDL_Instance *instance, player *player);
@@ -33,9 +33,9 @@ void free_map(int **map);
 /* raycast.c */
 
 void cast_ray(SDL_Instance *instance, int **map, int x,
-		player *player, int *textured);
+		player *player);
 void render_scene(SDL_Instance *instance, int **map,
-		player *player, int *textured);
+		player *player);
 void calcRayDir(int x, float *rayDirX, float *rayDirY, player *player);
 
 /* raycast_2.c */
@@ -48,8 +48,9 @@ void handle_hits(int **map, int *hit, float *sideDistX, float *sideDistY,
 		int *mapX, int *mapY, int *side, int *stepX, int *stepY,
 		float *deltaDistX, float *deltaDistY);
 
-/* textured.c */
+/* textures.c */
 
-void draw_textured_walls(SDL_Instance *instance);
-
+void draw_wall_slice(SDL_Instance *instance, player *player,
+		float perpWallDist, int side, int x);
+void renderFloorCeiling(SDL_Instance *instance, player *player, int x);
 #endif /* MAZE_H */

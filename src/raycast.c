@@ -8,8 +8,7 @@
  * @player: pointer to the player
  * @textured: boolean value
 */
-void cast_ray(SDL_Instance *instance, int **map, int x,
-		player *player, int *textured)
+void cast_ray(SDL_Instance *instance, int **map, int x,	player *player)
 {
 	float sideDistX, sideDistY, perpWallDist;
 	float deltaDistX, deltaDistY, rayDirX, rayDirY;
@@ -18,7 +17,7 @@ void cast_ray(SDL_Instance *instance, int **map, int x,
 
 	calcRayDir(x, &rayDirX, &rayDirY, player);
 
-	mapX = (int)player->playerX, mapY = (int)player->playerY;
+	mapX = (int)player->posX, mapY = (int)player->posY;
 	deltaDistX = fabs(1 / rayDirX), deltaDistY = fabs(1 / rayDirY);
 
 	stepSideDist(&rayDirX, &rayDirY, &stepX, &stepY, &mapX, &mapY, player,
@@ -28,24 +27,14 @@ void cast_ray(SDL_Instance *instance, int **map, int x,
 			&stepX, &stepY, &deltaDistX, &deltaDistY);
 
 	if (side == 0)
-		perpWallDist = (mapX - player->playerX + (1 - stepX) / 2) / rayDirX;
+		perpWallDist = (mapX - player->posX + (1 - stepX) / 2) / rayDirX;
 	else
-		perpWallDist = (mapY - player->playerY + (1 - stepY) / 2) / rayDirY;
+		perpWallDist = (mapY - player->posY + (1 - stepY) / 2) / rayDirY;
+	
+	player->posZ = perpWallDist;
 
-	line_height = (int)(SCREEN_HEIGHT / perpWallDist);
-	draw_start = -line_height / 2 + SCREEN_HEIGHT / 2;
-	if (draw_start < 0)
-		draw_start = 0;
-
-	draw_end = line_height / 2 + SCREEN_HEIGHT / 2;
-	if (draw_end >= SCREEN_HEIGHT)
-		draw_end = SCREEN_HEIGHT - 1;
-
-	if (*textured != 1)
-	{
-		//untextured_floor_ceiling(instance, x);
-		render_untextured_walls(instance, side, draw_start, draw_end, x);
-	}
+	renderFloorCeiling(instance, player, x);
+	draw_wall_slice(instance, player, perpWallDist, side, x);
 }
 /**
  * calcRayDir - calculate ray direction
@@ -58,8 +47,8 @@ void calcRayDir(int x, float *rayDirX, float *rayDirY, player *player)
 {
 	/* calculate raylength and direction */
 	float cameraX = (2 * x / (float)SCREEN_HEIGHT - 1);
-	*rayDirX = player->playerDirX + player->playerPlaneX * cameraX;
-	*rayDirY = player->playerDirY + player->playerPlaneY * cameraX;
+	*rayDirX = player->dirX + player->planeX * cameraX;
+	*rayDirY = player->dirY + player->planeY * cameraX;
 }
 
 
@@ -72,7 +61,7 @@ void calcRayDir(int x, float *rayDirX, float *rayDirY, player *player)
  * or not
 */
 void render_scene(SDL_Instance *instance, int **map,
-		player *player, int *textured)
+		player *player)
 {
 	int x;
 
@@ -80,19 +69,13 @@ void render_scene(SDL_Instance *instance, int **map,
 	SDL_RenderClear(instance->renderer);
 
 	/* untextured */
-	if (*textured == 0)
+	for (x = 0; x < SCREEN_WIDTH; x++)
 	{
-		for (x = 0; x < SCREEN_WIDTH; x++)
-		{
-			cast_ray(instance, map, x, player, textured);
-		}
-		draw_player(instance, player);
+		/* renderFloorCeiling(instance, player, x); */
+		cast_ray(instance, map, x, player);
 	}
-	else
-	{
-		/* textured */
-	}
-	
+	draw_player(instance, player);
+
 	SDL_RenderPresent(instance->renderer);
 }
 
@@ -117,21 +100,21 @@ void stepSideDist(float *rayDirX, float *rayDirY, int *stepX, int *stepY,
 	if (*rayDirX < 0)
 	{
 		*stepX = -1;
-		*sideDistX = (player->playerX - *mapX) * (*deltaDistX);
+		*sideDistX = (player->posX - *mapX) * (*deltaDistX);
 	}
 	else
 	{
 		*stepX = 1;
-		*sideDistX = (*mapX + 1.0 - player->playerX) * (*deltaDistX);
+		*sideDistX = (*mapX + 1.0 - player->posX) * (*deltaDistX);
 	}
 	if (*rayDirY < 0)
 	{
 		*stepY = -1;
-		*sideDistY = (player->playerY - *mapY) * (*deltaDistY);
+		*sideDistY = (player->posY - *mapY) * (*deltaDistY);
 	} else
 	{
 		*stepY = 1;
-		*sideDistY = (*mapY + 1.0 - player->playerY) * (*deltaDistY);
+		*sideDistY = (*mapY + 1.0 - player->posY) * (*deltaDistY);
 	}
 }
 

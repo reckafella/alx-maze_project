@@ -38,15 +38,18 @@ void render_untextured_walls(SDL_Instance *instance, int side, int draw_start, i
 void untextured_floor_ceiling(SDL_Instance *instance, int x)
 {
 	/* render the untextured floor and ceiling */
-	for (int y = 0; y < SCREEN_HEIGHT - 1; y++)
-	{
-		/* draw floor */
-		RENDER_COLOR(instance->renderer, 73, 156, 222, 255);
-		SDL_RenderDrawPoint(instance->renderer, x, y);
+	 int floorStart = SCREEN_HEIGHT / 2 + 1;
+    int ceilingEnd = SCREEN_HEIGHT / 2;
 
-		/* draw ceiling */
-		RENDER_COLOR(instance->renderer, 192, 33, 236, 255);
-		SDL_RenderDrawPoint(instance->renderer, x, SCREEN_HEIGHT - y - 1);
-	}
-	
+    // Render floor
+    SDL_SetRenderDrawColor(instance->renderer, 100, 100, 100, 255);  // Gray
+    for (int y = floorStart; y < SCREEN_HEIGHT; y++) {
+        SDL_RenderDrawPoint(instance->renderer, x, y);
+    }
+
+    // Render ceiling
+    SDL_SetRenderDrawColor(instance->renderer, 50, 50, 50, 255);  // Dark gray
+    for (int y = 0; y < ceilingEnd; y++) {
+        SDL_RenderDrawPoint(instance->renderer, x, y);
+    }
 }

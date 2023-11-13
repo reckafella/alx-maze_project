@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include <string.h>
 #include <math.h>
 
@@ -13,23 +14,21 @@ typedef struct SDL_Instance
 {
 	SDL_Window *window;
 	SDL_Renderer *renderer;
-	SDL_Texture *wall_texture;
-	SDL_Surface *wall_surface;
-	SDL_Texture *floor_texture;
-	SDL_Surface *floor_surface;
-	SDL_Texture *ceiling_texture;
-	SDL_Surface *ceiling_surface;
+	SDL_Surface *textures[NUMBER_OF_TEXTURES];
+	SDL_Texture *texture;
+	int textured;
 } SDL_Instance;
 
 
 typedef struct player
 {
-	float playerX;
-	float playerY;
-	float playerDirX;
-	float playerDirY;
-	float playerPlaneX;
-	float playerPlaneY;
+	float posX;
+	float posY;
+	float posZ;
+	float dirX;
+	float dirY;
+	float planeX;
+	float planeY;
 } player;
 
 /* typedef struct map
