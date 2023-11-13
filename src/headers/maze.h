@@ -22,6 +22,7 @@ void game_loop(SDL_Instance *instance, int **map, int *running,
 		player *player, int *textured);
 
 /* player.c */
+void draw_player(SDL_Instance *instance, player *player);
 int detect_collision(int **map, int x, int y);
 void update_player_position(int **map, player *player);
 /* map.c */

@@ -79,10 +79,20 @@ void render_scene(SDL_Instance *instance, int **map,
 	SDL_SetRenderDrawColor(instance->renderer, 53, 145, 69, 255);
 	SDL_RenderClear(instance->renderer);
 
-	for (x = 0; x < SCREEN_WIDTH; x++)
+	/* untextured */
+	if (*textured == 0)
 	{
-		cast_ray(instance, map, x, player, textured);
+		for (x = 0; x < SCREEN_WIDTH; x++)
+		{
+			cast_ray(instance, map, x, player, textured);
+		}
+		draw_player(instance, player);
 	}
+	else
+	{
+		/* textured */
+	}
+	
 	SDL_RenderPresent(instance->renderer);
 }
 

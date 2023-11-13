@@ -1,5 +1,25 @@
 #include "./headers/maze.h"
 
+
+/**
+ * draw_player - draw player
+ * @player: pointer to player struct
+ *
+ * Return: nothing
+*/
+void draw_player(SDL_Instance *instance, player *player)
+{
+	float x1 = player->playerX, x2 = player->playerX + player->playerDirX * 5;
+	float y1 = player->playerY, y2 = player->playerY + player->playerDirY * 5;
+
+	SDL_Rect rect = {player->playerX - 3, player->playerY - 3, 4, 4};
+	SDL_SetRenderDrawColor(instance->renderer, 255, 255, 0, 255);
+	SDL_RenderFillRect(instance->renderer, &rect);
+
+	SDL_RenderDrawLineF(instance->renderer, x1, y1, x2, y2);
+}
+
+
 /**
  * detect_collision - detect if player has hit a wall
  * @map: pointer to the 2D map
