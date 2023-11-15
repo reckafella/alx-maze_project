@@ -1,74 +1,65 @@
 #include "./headers/maze.h"
 
+/* global variables */
+uint32_t buffer[SCREEN_HEIGHT][SCREEN_WIDTH];
+uint32_t tiles[TEX_COUNT][TEX_HEIGHT][TEX_WIDTH];
+point pos, dir, plane;
+double time;
 
 /**
- * game_loop - handle game loop
- * @instance: pointer to an instance of sdl
- * @map: 2D map
- * @running: pointer to a variable holding run status of the game
- * @player: player
- * @textured: boolean for whether to draw textures, 0 - false, 1 - true
- *
- * Return: Nothing
-*/
-void game_loop(SDL_Instance *instance, int **map, int *running, player *player)
-{
-	SDL_Event event;
-
-	while(running)
-	{
-		while (SDL_PollEvent(&event))
-			if (event.type == SDL_QUIT || event.key.keysym.sym == SDLK_ESCAPE)
-				running = 0;
-		update_player_position(map, player);
-		render_scene(instance, map, player);
-	}
-}
-
-/**
- * main - entry point
- * @argc: number of arguments passed in the command line
- * @argv: argument vector
- *
- * Return: 0 on success, 1 otherwise
+ * main - program entry point
+ * @argc: argument count
+ * @argv: pointer to an array of arguments
 */
 int main(int argc, char **argv)
 {
-	/* instance of SDL */
+	int *maze_map;
+	int length;
+	char *map_name = "maps/", *map_path;
 	SDL_Instance instance;
+
+	/* initialize key variables */
 	instance.textured = 1;
-	/* variables to handle player position and direction when maze starts */
+	pos.x = 1, pos.y = 12, dir.x = 1;
+	dir.y = -0.66, plane.x = 0, plane.y = 0.66;
+	time = 0;
 
-	player player;
-	player.posX = 2.0, player.posY = 2.0, player.posZ = 0.0;
-	player.dirX = 1.0, player.dirY = 0.0;
-	player.planeX = 0.0, player.planeY = 0.66;
-
-	int running = 1, length;
-	int **maze_map;
-	char *map_path, *mp = "maps/";
-	
 	if (argc < 2)
 	{
 		fprintf(stderr, "USAGE: %s map_name\n", argv[0]);
 		return (1);
 	}
-	length = strlen(mp) + 1 + strlen(argv[1]);
+	length = strlen(map_name) + strlen(argv[1]) + 1;
 	map_path = malloc(length);
-	if (!map_path)
-		return (1);
 
-	strcpy(map_path, mp);
+	if (!map_path)
+	{
+		fprintf(stderr, "Malloc failed. \n\nExiting ...\n");
+		return (1);
+	}
+	strcpy(map_path, map_name);
 	map_path = strcat(map_path, argv[1]);
 
-	maze_map = read_map_from_file(map_path);
+	maze_map = read_map(map_path);
+	if (!maze_map)
+		return (1);
 
-	init_sdl(&instance);
-	game_loop(&instance, maze_map, &running, &player);
-	free_map(maze_map);
-	free(map_path);
+	initialize_maze(&instance);
+
+	if (instance.textured)
+		load_textures();
+
+	while (maze_loop(&instance) == 0)
+	{
+		if (!instance.textured)
+			untextured_floor_ceiling(&instance);
+		ray_cast(&instance, maze_map);
+
+		/* handle events */
+		update_position(maze_map);
+	}
+
 	destroy_maze(&instance);
-	
-
+	free(maze_map);
 	return (0);
 }

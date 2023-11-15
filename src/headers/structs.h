@@ -2,39 +2,36 @@
 #define STRUCTS_H
 
 #include "macros.h"
-
-#include <stdio.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <string.h>
-#include <math.h>
-
-
+/**
+ * struct SDL_Instance - structure to hold initialize variables for SDL2
+ * @window: sdl window
+ * @renderer: sdl renderer
+ * @textures: sdl texture surfaces
+ * @texture: SDL texture
+ * @textured: 0 if not, 1 otherwise
+ */
 typedef struct SDL_Instance
 {
 	SDL_Window *window;
 	SDL_Renderer *renderer;
-	SDL_Surface *textures[NUMBER_OF_TEXTURES];
+	/* SDL_Surface *textures[TEX_COUNT]; */
 	SDL_Texture *texture;
 	int textured;
 } SDL_Instance;
 
 
-typedef struct player
+/**
+ * struct point - structure to hold x and y coordinate points
+ * @x: double x coordinate
+ * @y: double y coordinate
+ *
+ * Description: structure holds x and y coordinate points of type double
+ */
+typedef struct point
 {
-	float posX;
-	float posY;
-	float posZ;
-	float dirX;
-	float dirY;
-	float planeX;
-	float planeY;
-} player;
+	double x;
+	double y;
+} point;
 
-/* typedef struct map
-{
-	int **array;
-	int rows;
-} map; */
 
 #endif /* STRUCTS_H */

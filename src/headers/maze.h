@@ -3,54 +3,43 @@
 
 #include "structs.h"
 
+/* global variables */
+
+extern uint32_t buffer[SCREEN_HEIGHT][SCREEN_WIDTH];
+extern uint32_t tiles[TEX_COUNT][TEX_HEIGHT][TEX_WIDTH];
+extern point pos;
+extern point dir;
+extern point plane;
+extern double time; /* current frametime */
+
 /* function prototypes */
 /* init.c */
 
-int init_sdl(SDL_Instance *instance);
+int initialize_maze(SDL_Instance *instance);
 void destroy_maze(SDL_Instance *instance);
-
-/* untextured.c */
-
-void render_untextured_walls(SDL_Instance *instance, int side,
-		int draw_start, int draw_end, int x);
-void untextured_floor_ceiling(SDL_Instance *instance, int x);
-
-
-/* maze.c */
-
-void game_loop(SDL_Instance *instance, int **map, int *running,
-		player *player);
-
-/* player.c */
-void draw_player(SDL_Instance *instance, player *player);
-int detect_collision(int **map, int x, int y);
-void update_player_position(int **map, player *player);
-/* map.c */
-
-int **read_map_from_file(const char* filename);
-void free_map(int **map);
-
-/* raycast.c */
-
-void cast_ray(SDL_Instance *instance, int **map, int x,
-		player *player);
-void render_scene(SDL_Instance *instance, int **map,
-		player *player);
-void calcRayDir(int x, float *rayDirX, float *rayDirY, player *player);
-
-/* raycast_2.c */
-
-void stepSideDist(float *rayDirX, float *rayDirY, int *stepX, int *stepY,
-		int *mapX, int *mapY, player *player, float *sideDistX,
-		float *sideDistY, float *deltaDistX, float *deltaDistY);
-
-void handle_hits(int **map, int *hit, float *sideDistX, float *sideDistY,
-		int *mapX, int *mapY, int *side, int *stepX, int *stepY,
-		float *deltaDistX, float *deltaDistY);
+void update_renderer(SDL_Instance *instance);
 
 /* textures.c */
 
-void draw_wall_slice(SDL_Instance *instance, player *player,
-		float perpWallDist, int side, int x);
-void renderFloorCeiling(SDL_Instance *instance, player *player, int x);
+void untextured_floor_ceiling(SDL_Instance *instance);
+void render_walls(SDL_Instance *instance, int *maze,
+		SDL_Point map, point ray_pos, point ray_dir,
+		double dist_to_wall, int x, int side);
+
+void textured_floor_ceiling(SDL_Point map, point ray_dir,
+		double dist_to_wall, double wallX, int draw_end, int x, int side);
+
+
+/* maps.c */
+
+int *read_map(char *filename);
+void load_textures(void);
+
+/* events.c */
+
+void update_position(int *maze);
+int maze_loop(SDL_Instance *instance);
+
+/* raycast.c */
+void ray_cast(SDL_Instance *instance, int *maze_map);
 #endif /* MAZE_H */

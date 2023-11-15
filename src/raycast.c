@@ -1,156 +1,81 @@
 #include "./headers/maze.h"
 
 /**
- * cast_ray - cast a ray
- * @instance: SDL Instance
- * @map: double pointer to map
- * @x: current x value
- * @player: pointer to the player
- * @textured: boolean value
+* ray_cast - cast rays and render walls, ceiling and floor
+ * @instance: sdl instance
+ * @maze_map: pointer to 2D maze map
 */
-void cast_ray(SDL_Instance *instance, int **map, int x,	player *player)
+void ray_cast(SDL_Instance *instance, int *maze_map)
 {
-	float sideDistX, sideDistY, perpWallDist;
-	float deltaDistX, deltaDistY, rayDirX, rayDirY;
-	int stepX, stepY, mapX, mapY, hit = 0, side = 0, line_height;
-	int draw_start, draw_end;
+	double cameraX, dist_to_wall;
+	point ray_pos, ray_dir, pos_to_next, dist_to_next;
+	SDL_Point map, step;
+	int hit, side, x;
 
-	calcRayDir(x, &rayDirX, &rayDirY, player);
-
-	mapX = (int)player->posX, mapY = (int)player->posY;
-	deltaDistX = fabs(1 / rayDirX), deltaDistY = fabs(1 / rayDirY);
-
-	stepSideDist(&rayDirX, &rayDirY, &stepX, &stepY, &mapX, &mapY, player,
-			&sideDistX, &sideDistY, &deltaDistX, &deltaDistY);
-
-	handle_hits(map, &hit, &sideDistX, &sideDistY, &mapX, &mapY, &side,
-			&stepX, &stepY, &deltaDistX, &deltaDistY);
-
-	if (side == 0)
-		perpWallDist = (mapX - player->posX + (1 - stepX) / 2) / rayDirX;
-	else
-		perpWallDist = (mapY - player->posY + (1 - stepY) / 2) / rayDirY;
-	
-	player->posZ = perpWallDist;
-
-	renderFloorCeiling(instance, player, x);
-	draw_wall_slice(instance, player, perpWallDist, side, x);
-}
-/**
- * calcRayDir - calculate ray direction
- * @x: x value
- * @rayDirX: ray direction on x coordinate
- * @rayDirY: ray direction on y coordinate
- * @player: player
-*/
-void calcRayDir(int x, float *rayDirX, float *rayDirY, player *player)
-{
-	/* calculate raylength and direction */
-	float cameraX = (2 * x / (float)SCREEN_HEIGHT - 1);
-	*rayDirX = player->dirX + player->planeX * cameraX;
-	*rayDirY = player->dirY + player->planeY * cameraX;
-}
-
-
-/**
- * render_scene - render scene
- * @instance: pointer to the SDL instance
- * @map: pointer to the 2D map
- * @player: player's current x,y coordinates
- * @textured: pointer to integer value indicating whether to create textures
- * or not
-*/
-void render_scene(SDL_Instance *instance, int **map,
-		player *player)
-{
-	int x;
-
-	SDL_SetRenderDrawColor(instance->renderer, 53, 145, 69, 255);
-	SDL_RenderClear(instance->renderer);
-
-	/* untextured */
 	for (x = 0; x < SCREEN_WIDTH; x++)
 	{
-		/* renderFloorCeiling(instance, player, x); */
-		cast_ray(instance, map, x, player);
-	}
-	draw_player(instance, player);
+		cameraX = 2 * x / (double)(SCREEN_WIDTH) - 1;
+		ray_pos.x = pos.x, ray_pos.y = pos.y;
+		ray_dir.x = dir.x + plane.x * cameraX;
+		ray_dir.y = dir.y + plane.y * cameraX;
+		map.x = (int)(ray_pos.x), map.y = (int)(ray_pos.y);
 
-	SDL_RenderPresent(instance->renderer);
-}
+		dist_to_next.x = sqrt(1 + (pow(ray_dir.y, 2)) / pow(ray_dir.x, 2));
+		dist_to_next.y = sqrt(1 + (pow(ray_dir.x, 2)) / pow(ray_dir.y, 2));
 
-/**
- * stepSideDist - set distance to draw ray based on ray direction
- * @rayDirX: ray direction x
- * @rayDirY: ray direction y
- * @stepX: number of steps to take on x axis
- * @stepY: number of steps to take on y axis
- * @mapX: x axis value on the map
- * @mapY: y axis value on the map
- * @player: pointer to player struct
- * @sideDistX: ray distance on x
- * @sideDistY: ray distance on y
- * @deltaDistX: delta on x
- * @deltaDistY: delta on y
-*/
-void stepSideDist(float *rayDirX, float *rayDirY, int *stepX, int *stepY,
-		int *mapX, int *mapY, player *player, float *sideDistX,
-		float *sideDistY, float *deltaDistX, float *deltaDistY)
-{
-	if (*rayDirX < 0)
-	{
-		*stepX = -1;
-		*sideDistX = (player->posX - *mapX) * (*deltaDistX);
-	}
-	else
-	{
-		*stepX = 1;
-		*sideDistX = (*mapX + 1.0 - player->posX) * (*deltaDistX);
-	}
-	if (*rayDirY < 0)
-	{
-		*stepY = -1;
-		*sideDistY = (player->posY - *mapY) * (*deltaDistY);
-	} else
-	{
-		*stepY = 1;
-		*sideDistY = (*mapY + 1.0 - player->posY) * (*deltaDistY);
-	}
-}
-
-/**
- * handle_hits - determine whether player has hit the wall
- * @map: 2D map
- * @hit: pointer to hit variable
- * @sideDistX: ray distance on x
- * @sideDistY: ray distance on y
- * @mapX: x axis value on the map
- * @mapY: y axis value on the map
- * @side: whether there is a wall on the side
- * @stepX: number of steps to take on x axis
- * @stepY: number of steps to take on y axis
- * @deltaDistX: delta on x
- * @deltaDistY: delta on y
-*/
-void handle_hits(int **map, int *hit, float *sideDistX, float *sideDistY,
-		int *mapX, int *mapY, int *side, int *stepX, int *stepY,
-		float *deltaDistX, float *deltaDistY)
-{
-	while (*hit == 0)
-	{
-		if (*sideDistX < *sideDistY)
+		if (ray_dir.x < 0)
 		{
-			*sideDistX += *deltaDistX;
-			*mapX += *stepX;
-			*side = 0;
+			step.x = -1;
+			pos_to_next.x = (ray_pos.x - map.x) * dist_to_next.x;
 		}
 		else
 		{
-			*sideDistY += *deltaDistY;
-			*mapY += *stepY;
-			*side = 1;
+			step.x = 1;
+			pos_to_next.x = (map.x + 1.0 - ray_pos.x) * dist_to_next.x;
 		}
-		if (map[*mapX][*mapY] > 0)
-			*hit = 1;
+
+		if (ray_dir.y < 0)
+		{
+			step.y = -1;
+			pos_to_next.y = (ray_pos.y - map.y) * dist_to_next.y;
+		}
+		else
+		{
+			step.y = 1;
+			pos_to_next.y = (map.y + 1.0 - ray_pos.y) * dist_to_next.y;
+		}
+
+		hit = 0;
+		while (hit == 0)
+		{
+			if (pos_to_next.x < pos_to_next.y)
+			{
+				pos_to_next.x += dist_to_next.x;
+				map.x += step.x;
+				side = 0;
+			}
+			else
+			{
+				pos_to_next.y += dist_to_next.y;
+				map.y += step.y;
+				side = 1;
+			}
+
+			/* check if rays hits a wall */
+			if (*((int *)maze_map + map.x * MAP_WIDTH + map.y) > 0)
+				hit = 1;
+		}
+
+		/* calculate distance to the wall in camera direction */
+		if (side == 0)
+			dist_to_wall = (map.x - ray_pos.x + (1 - step.x) / 2) / ray_dir.x;
+		else
+			dist_to_wall = (map.y - ray_pos.y + (1 - step.y) / 2) / ray_dir.y;
+
+		/* render walls */
+		render_walls(instance, maze_map, map, ray_pos, ray_dir,
+					dist_to_wall, x, side);
 	}
+	/* refresh render with the update buffer */
+	update_renderer(instance);
 }

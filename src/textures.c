@@ -1,134 +1,223 @@
 #include "headers/maze.h"
 
 /**
- * draw_walls_slice - draw walls
+ * render_walls - draw walls
  * @instance: SDL instance
- * @player: pointer to player
- * @perpWallDist: float value for perpendicular wall distance
- * @side: integer value indicating whether wall is on either side
- * @x: x coordinate value
- *
- * Return: Nothing
+ * @maze: 2D maze
+ * @map: xy point on the map
+ * @ray_pos: xy ray position
+ * @ray_dir: xy ray direction
+ * @dist_to_wall: nearest distance from player to the wall
+ * @x: point on the x axis
+ * @side: stores 0 if wall is not on the side, 1 otherwise
 */
-void draw_wall_slice(SDL_Instance *instance, player *player,
-		float perpWallDist, int side, int x)
+void render_walls(SDL_Instance *instance, int *maze,
+				  SDL_Point map, point ray_pos, point ray_dir,
+				  double dist_to_wall, int x, int side)
 {
-	int line_height, draw_start, draw_end;
+	int slice_height, draw_start, draw_end, tile_index, width, height, y;
+	double wallX;
+	SDL_Point tex;
+	uint32_t color;
 
-	line_height = (int)(SCREEN_HEIGHT / perpWallDist);
-	draw_start = -line_height / 2 + SCREEN_HEIGHT / 2;
-	if (draw_start < 0)
-		draw_start = 0;
-
-	draw_end = line_height / 2 + SCREEN_HEIGHT / 2;
-	if (draw_end >= SCREEN_HEIGHT)
-		draw_end = SCREEN_HEIGHT - 1;
-
-	if (instance->textured)
+	if (!instance->textured)
 	{
-		int texX;
+		SDL_GetWindowSize(instance->window, &width, &height);
 
-		SDL_Surface *wallTexture = instance->textures[side];
+		slice_height = (int)(height / dist_to_wall);
 
-		texX = (int)(TEXTURE_WIDTH * (x * 0.5)) % TEXTURE_WIDTH;
-		if ((side == 0 && player->dirX > 0) || (side == 1 && player->dirY < 0))
-			texX = TEXTURE_WIDTH - texX - 1;
-		
-		SDL_Rect dest_rect = {x, draw_start, 1, line_height};
-		SDL_Rect src_rect = {texX, 0, 1, TEXTURE_HEIGHT};
-		SDL_Texture *texture = SDL_CreateTextureFromSurface(instance->renderer, wallTexture);
-		SDL_RenderCopy(instance->renderer, texture, &src_rect, &dest_rect);
-		SDL_DestroyTexture(texture);
-	}
-	else
-	{
-		SDL_Color wall_color;
+		draw_start = -slice_height / 2 + height / 2;
+		if (draw_start < 0)
+			draw_start = 0;
+
+		 draw_end = slice_height / 2 + height / 2;
+		 if (draw_end >= height)
+		 	draw_end = height - 1;
 
 		if (side == 0)
-			wall_color = (SDL_Color){255, 0, 0, 255}; /* RED */
-		else
-			wall_color = (SDL_Color){0, 255, 0, 255}; /* GREEN */
+			SDL_SetRenderDrawColor(instance->renderer, 50, 24, 241, 255);
+		else if (side == 1)
+			SDL_SetRenderDrawColor(instance->renderer, 25, 48, 251, 128);
 
-		SDL_SetRenderDrawColor(instance->renderer, wall_color.r, wall_color.g, wall_color.b, wall_color.a);
 		SDL_RenderDrawLine(instance->renderer, x, draw_start, x, draw_end);
+	}
+	else /* textured */
+	{
+		slice_height = (int)(SCREEN_HEIGHT / dist_to_wall);
+
+		draw_start = -slice_height / 2 + SCREEN_HEIGHT / 2;
+		if (draw_start < 0)
+			draw_start = 0;
+		
+		draw_end = slice_height / 2 + SCREEN_HEIGHT / 2;
+		if (draw_end >= SCREEN_HEIGHT)
+			draw_end = SCREEN_HEIGHT - 1;
+		
+		wallX = 0;
+		if (side == 0)
+			wallX = ray_pos.y + dist_to_wall * ray_dir.y;
+		else if (side == 1)
+			wallX = ray_pos.x + dist_to_wall * ray_dir.x;
+		
+		tile_index = *((int *)maze + map.x * MAP_WIDTH + map.y) - 1;
+		wallX -= floor(wallX);
+
+		tex.x = (int)(wallX * (double)TEX_WIDTH);
+		if (side == 0 && ray_dir.x > 0)
+			tex.x = TEX_WIDTH - tex.x - 1;
+		if (side == 1 && ray_dir.y < 0)
+			tex.x = TEX_WIDTH - tex.x - 1;
+		
+		for (y = draw_start; y < draw_end; y++)
+		{
+			tex.y = ((((y << 1) - SCREEN_HEIGHT + slice_height) << (int)log2(TEX_HEIGHT)) / slice_height) >> 1;
+
+			color = tiles[tile_index][tex.x][tex.y];
+
+			if (side == 1)
+				color = (color >> 1) & 8355711;
+
+			buffer[y][x] = color;
+		}
+		textured_floor_ceiling(map, ray_dir, dist_to_wall, wallX, draw_end, x, side);
 	}
 }
 
 /**
- * renderFloorCeiling - draw floor and ceiling
- * @instance: SDL instance
- * @player: pointer to player struct
- * @x: x coordinate value
+ * textured_floor_ceiling - draw textured floors and ceilings
+ * @map: xy point on the map
+ * @ray_dir: xy ray direction
+ * @dist_to_wall: nearest distance from player to the wall
+ * @wallX: wall x
+ * @draw_end: xy point where drawing should stop
+ * @x: point on the x axis
+ * @side: stores 0 if wall is not on the side, 1 otherwise
+ *
+ * Return: Nothing
 */
-void renderFloorCeiling(SDL_Instance *instance, player *player, int x)
+void textured_floor_ceiling(SDL_Point map, point ray_dir,
+							double dist_to_wall, double wallX,
+							int draw_end, int x, int side)
 {
-	int y, floorTexX, floorTexY, ceilingTexX, ceilingTexY;
-	int floorStart = SCREEN_HEIGHT / 2 + 1,
-	    ceilingEnd = SCREEN_HEIGHT / 2;
-	double currDist, weight, currFloorX, currFloorY, currCeilX, currCeilY;
+	point floor_wall, current_floor;
+	SDL_Point floor_tex;
+	double weight, currentDist;
+	int y;
 
-	if (instance->textured)
+	if (side == 0 && ray_dir.x > 0)
 	{
-		/* render textured floor */
-		for (y = floorStart; y < SCREEN_HEIGHT; y++)
-		{
-			currDist = SCREEN_HEIGHT / (2.0 * (SCREEN_HEIGHT / 2 - y));
-			weight = currDist / player->posZ;
-			currFloorX = weight * player->posX + (1.0 - weight) * player->dirX;
-			currFloorY = weight * player->posY + (1.0 - weight) * player->dirY;
-
-			floorTexX = (int)(currFloorX * TEXTURE_WIDTH) % TEXTURE_WIDTH;
-			floorTexY = (int)(currFloorY * TEXTURE_HEIGHT) % TEXTURE_HEIGHT;
-
-			SDL_Rect dst_rect = {x, y, 1, 1};
-			SDL_Rect src_rect = {floorTexX, floorTexY, 1, 1};
-			SDL_Texture *texture = SDL_CreateTextureFromSurface(
-					instance->renderer,
-					instance->textures[2]);
-			SDL_RenderCopy(instance->renderer, texture,
-					&src_rect, &dst_rect);
-			SDL_DestroyTexture(texture);
-		}
-		/* render textured ceiling */
-		for (y = 0; y < ceilingEnd; y++)
-		{
-			currDist = (SCREEN_HEIGHT /
-					(2.0 * (y - SCREEN_HEIGHT / 2)));
-			weight = currDist / player->posZ;
-			currCeilX = weight * player->posX +
-				(1.0 - weight) * player->dirX;
-			currCeilY = weight * player->posY +
-				(1.0 - weight) * player->dirY;
-
-			ceilingTexX = (int)(currFloorX * TEXTURE_WIDTH) %
-				TEXTURE_WIDTH;
-			ceilingTexY = (int)(currFloorY * TEXTURE_HEIGHT) %
-				TEXTURE_HEIGHT;
-
-			SDL_Rect dst_rect = {x, y, 1, 1};
-			SDL_Rect src_rect = {ceilingTexX, ceilingTexY, 1, 1};
-			SDL_Texture *texture = SDL_CreateTextureFromSurface(
-					instance->renderer,
-					instance->textures[3]);
-			SDL_RenderCopy(instance->renderer, texture,
-					&src_rect, &dst_rect);
-			SDL_DestroyTexture(texture);
-		}
+		floor_wall.x = map.x;
+		floor_wall.y = map.y + wallX;
+	}
+		
+	else if (side == 0 && ray_dir.x < 0)
+	{
+		floor_wall.x = map.x + 1.0;
+		floor_wall.y = map.y + wallX;
+	}
+	else if (side == 1 && ray_dir.y > 0)
+	{
+		floor_wall.x = map.x + wallX;
+		floor_wall.y = map.y;
 	}
 	else
 	{
-		/* render untextured floor */
-		SDL_SetRenderDrawColor(instance->renderer,
-				100, 100, 100, 255);  // Gray
-		for (int y = floorStart; y < SCREEN_HEIGHT; y++) {
-			SDL_RenderDrawPoint(instance->renderer, x, y);
-		}
+		floor_wall.x = map.x + wallX;
+		floor_wall.y = map.y + 1.0;
+	}
+	
+	if (draw_end < 0)
+		draw_end = SCREEN_HEIGHT;
+	
+	for (y = draw_end + 1; y < SCREEN_HEIGHT; y++)
+	{
+		currentDist = SCREEN_HEIGHT / (2.0 * y - SCREEN_HEIGHT);
+		weight = currentDist / dist_to_wall;
+		
+		current_floor.x = (
+				weight * floor_wall.x + (1.0 - weight) * pos.x);
+		current_floor.y = (
+				weight * floor_wall.y + (1.0 - weight) * pos.y);
 
-    	/* Render untextured ceiling */
-    	SDL_SetRenderDrawColor(instance->renderer,
-			50, 50, 50, 255);  // Dark gray
-		for (int y = 0; y < ceilingEnd; y++) {
-			SDL_RenderDrawPoint(instance->renderer, x, y);
+		floor_tex.x = (int)(current_floor.x * TEX_WIDTH) % TEX_WIDTH;
+		floor_tex.y = (int)(current_floor.y * TEX_HEIGHT) % TEX_HEIGHT;
+
+		/* add floor and ceiling textures to buffer */
+		buffer[y][x] = tiles[5][floor_tex.y][floor_tex.x];
+		buffer[SCREEN_HEIGHT - y][x] = tiles[4][floor_tex.y][floor_tex.x];
+	}
+}
+
+/**
+ * untextured_floor_ceiling - draw an untextured floor and ceiling
+ * @instance: SDL instance
+ *
+ * Return: Nothing
+*/
+void untextured_floor_ceiling(SDL_Instance *instance)
+{
+	SDL_Rect floor;
+	SDL_Rect ceiling;
+	int width, height;
+
+	SDL_GetWindowSize(instance->window, &width, &height);
+
+	floor.x = 0, floor.y = height / 2, floor.w = width, floor.h = height / 2;
+	ceiling.x = 0, ceiling.y = 0, ceiling.w = width, ceiling.h = height / 2;
+
+	/* render ceiling */
+	SDL_SetRenderDrawColor(instance->renderer, 223, 56, 78, 254);
+	SDL_RenderFillRect(instance->renderer, &ceiling);
+
+	/* render floor */
+	SDL_SetRenderDrawColor(instance->renderer, 26, 56, 89, 254);
+	SDL_RenderFillRect(instance->renderer, &floor);
+}
+
+
+/**
+ * load_textures - load textures from image files
+*/
+void load_textures(void)
+{
+	SDL_Surface *textures[TEX_COUNT];
+	uint8_t *pixel;
+	int a, b, c;
+
+	textures[0] = IMG_Load("./images/wall1.bmp");
+	textures[1] = IMG_Load("./images/wall2.bmp");
+	textures[2] = IMG_Load("./images/windowtree.bmp");
+	textures[3] = IMG_Load("./images/windowspooky.bmp");
+	textures[4] = IMG_Load("./images/ceiling.bmp");
+	textures[5] = IMG_Load("./images/floorboards.bmp");
+
+
+	for (a = 0; a < TEX_COUNT; a++)
+	{
+		if (!textures[a])
+		{
+			fprintf(stderr, "Error loading textures[%i]: %s\nExiting...\n", a, SDL_GetError());
+			exit(1);
 		}
+	}
+
+	for (a = 0; a < TEX_COUNT; a++)
+	{
+		for (b = 0; b < TEX_HEIGHT; b++)
+		{
+			for (c = 0; c < TEX_WIDTH; c++)
+			{
+				pixel = (uint8_t *)textures[a]->pixels +
+						c * textures[a]->pitch + b * textures[a]->format->BytesPerPixel;
+				tiles[a][b][c] = pixel[0] | pixel[1] << 8 | pixel[2] << 16;
+			}
+		}
+	}
+
+	/* free surface */
+	for (a = 0; a < TEX_COUNT; a++)
+	{
+		SDL_FreeSurface(textures[a]);
+		textures[a] = NULL;
 	}
 }
