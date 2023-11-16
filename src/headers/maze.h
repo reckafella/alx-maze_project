@@ -41,5 +41,12 @@ void update_position(int *maze);
 int maze_loop(SDL_Instance *instance);
 
 /* raycast.c */
+
 void ray_cast(SDL_Instance *instance, int *maze_map);
+
+/* get_opts.c */
+
+char *handle_options(SDL_Instance *instance, int argc, char **argv);
+void print_help(char **argv);
+
 #endif /* MAZE_H */
