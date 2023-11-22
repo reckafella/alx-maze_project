@@ -1,4 +1,4 @@
-# **The Maze**
+# **Project Name: The Maze**
 
 **__This repository contains code for the Maze Project, done as the Foundations' final project in the ALX Software Engineering__**
 
@@ -8,7 +8,12 @@
 
 <br>
 
+# **Introduction**
 The project explores how to create a realistic 3D maze using raycasting.
+
+For an illustration of how the program works, visit: [YouTube](https://www.youtube.com/watch?v=52Zd8OCippo&feature=youtu.be)
+
+To read my blog post visit: [Substack](https://rohnanalytics.substack.com/p/alx-maze-project)
 
 
 ## **How to Compile and Run this Maze**
@@ -64,6 +69,20 @@ Use the following keys to control movement in the maze:<br>
 > `D` or `right arrow key` - turning right <br>
 > `R` - strafe right <br>
 > `L` - strafe left <br>
+
+# **Contributing**
+All developers are encouraged to contribute and improve this project. <br>
+
+
+# **Licensing**<br>
+To view this project licensing details click here: [License](./LICENSE)
+
+# **My Story**
+Expertise in software development is a muscle that gets bigger only when under pressure. Therefore, to become a better a software developer, an individual must do the dirty work of designing, building and debugging programs. That is what embarking on this project taught me. This project is a stepping stone on the journey to joining the 10% group of the best developers.
+
+The most demanding non-technical challenge faced revolved around maintaining a healthy work-life balance as a solo team member. The increasing complexity of the project and the desire to meet ambitious goals led to extended working hours and an intensified sense of responsibility. Striking a harmonious balance between project demands and personal well-being became a critical concern in this solitary work environment.
+
+Managing the project commitments alongside other personal and professional responsibilities demanded effective time management and prioritization. It required a conscientious effort to prevent burnout and ensure sustained productivity over the long term. Recognizing the importance of relaxation and mental rejuvenation became essential to maintain focus and creativity during intensive coding and problem-solving sessions.
 
 ## To-Do
 * improve map parsing

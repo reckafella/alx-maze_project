@@ -11,9 +11,9 @@
  * @x: point on the x axis
  * @side: stores 0 if wall is not on the side, 1 otherwise
 */
-void render_walls(SDL_Instance *instance, int *maze,
-				  SDL_Point map, point ray_pos, point ray_dir,
-				  double dist_to_wall, int x, int side)
+void render_walls(SDL_Instance *instance, int *maze, SDL_Point map,
+		point ray_pos, point ray_dir, double dist_to_wall,
+		int x, int side)
 {
 	int slice_height, draw_start, draw_end, tile_index, width, height, y;
 	double wallX;
@@ -35,11 +35,14 @@ void render_walls(SDL_Instance *instance, int *maze,
 		 	draw_end = height - 1;
 
 		if (side == 0)
-			SDL_SetRenderDrawColor(instance->renderer, 50, 24, 241, 255);
+			SDL_SetRenderDrawColor(instance->renderer,
+					50, 24, 241, 255);
 		else if (side == 1)
-			SDL_SetRenderDrawColor(instance->renderer, 25, 48, 251, 128);
+			SDL_SetRenderDrawColor(instance->renderer,
+					25, 48, 251, 128);
 
-		SDL_RenderDrawLine(instance->renderer, x, draw_start, x, draw_end);
+		SDL_RenderDrawLine(instance->renderer, x,
+				draw_start, x, draw_end);
 	}
 	else /* textured */
 	{
@@ -70,7 +73,9 @@ void render_walls(SDL_Instance *instance, int *maze,
 		
 		for (y = draw_start; y < draw_end; y++)
 		{
-			tex.y = ((((y << 1) - SCREEN_HEIGHT + slice_height) << (int)log2(TEX_HEIGHT)) / slice_height) >> 1;
+			tex.y = ((((y << 1) - SCREEN_HEIGHT + slice_height)
+						<< (int)log2(TEX_HEIGHT)) /
+					slice_height) >> 1;
 
 			color = tiles[tile_index][tex.x][tex.y];
 
@@ -95,9 +100,8 @@ void render_walls(SDL_Instance *instance, int *maze,
  *
  * Return: Nothing
 */
-void textured_floor_ceiling(SDL_Point map, point ray_dir,
-							double dist_to_wall, double wallX,
-							int draw_end, int x, int side)
+void textured_floor_ceiling(SDL_Point map, point ray_dir, double dist_to_wall,
+		double wallX, int draw_end, int x, int side)
 {
 	point floor_wall, current_floor;
 	SDL_Point floor_tex;
@@ -177,6 +181,8 @@ void untextured_floor_ceiling(SDL_Instance *instance)
 
 /**
  * load_textures - load textures from image files
+ *
+ * Return: nothing
 */
 void load_textures(void)
 {

@@ -10,6 +10,8 @@ double time;
  * main - program entry point
  * @argc: argument count
  * @argv: pointer to an array of arguments
+ *
+ * Return: 0 on success
 */
 int main(int argc, char **argv)
 {
@@ -19,7 +21,7 @@ int main(int argc, char **argv)
 	SDL_Instance instance;
 
 	/* initialize key variables */
-	instance.textured = 0;
+	instance.textured = 1;
 	pos.x = 1, pos.y = 12, dir.x = 1;
 	dir.y = -0.66, plane.x = 0, plane.y = 0.66;
 	time = 0;

@@ -36,9 +36,10 @@ int initialize_maze(SDL_Instance *instance)
 		return (1);
 	}
 	instance->texture = SDL_CreateTexture(instance->renderer,
-										  SDL_PIXELFORMAT_ARGB8888,
-										  SDL_TEXTUREACCESS_STREAMING,
-										  SCREEN_WIDTH, SCREEN_HEIGHT);
+			SDL_PIXELFORMAT_ARGB8888,
+			SDL_TEXTUREACCESS_STREAMING,
+			SCREEN_WIDTH, SCREEN_HEIGHT);
+
 	if (!instance->texture)
 	{
 		fprintf(stderr, "Error creating texture: %s\n", SDL_GetError());
@@ -72,9 +73,12 @@ void update_renderer(SDL_Instance *instance)
 
 	if (instance->textured)
 	{
-		SDL_UpdateTexture(instance->texture, NULL, buffer, SCREEN_WIDTH * 4);
+		SDL_UpdateTexture(instance->texture,
+				NULL, buffer,
+				SCREEN_WIDTH * 4);
 		SDL_RenderClear(instance->renderer);
-		SDL_RenderCopy(instance->renderer, instance->texture, NULL, NULL);
+		SDL_RenderCopy(instance->renderer,
+				instance->texture, NULL, NULL);
 
 		for (x = 0; x < SCREEN_WIDTH; x++)
 		{

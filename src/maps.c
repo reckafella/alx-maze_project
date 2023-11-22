@@ -3,6 +3,8 @@
 /**
  * read_map - reads a file and creates a map for the maze
  * @file_name: file name to read map data
+ *
+ * Return: pointer to map or NULL
 */
 int *read_map(char *filename)
 {
@@ -15,7 +17,8 @@ int *read_map(char *filename)
 	file = fopen(filename, "r");
 	if (!file)
 	{
-		fprintf(stderr, "Error opening map file: %s\nExiting...\n", filename);
+		fprintf(stderr, "Error opening map file: %s\nExiting...\n",
+				filename);
 		return (NULL);
 	}
 

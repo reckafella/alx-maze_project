@@ -1,5 +1,10 @@
 #include "headers/maze.h"
-
+/**
+ * update_position - update player position
+ * @maze: pointer to the maze map
+ *
+ * Return: Nothing
+ */
 void update_position(int *maze)
 {
 	const uint8_t *key = SDL_GetKeyboardState(NULL);
@@ -83,6 +88,7 @@ void update_position(int *maze)
 
 /**
  * maze_loop - check if a user quits
+ * @instance: pointer to an SDL instance
  *
  * Return: 0 if a user has quit, 1 otherwise
 */
@@ -95,11 +101,12 @@ int maze_loop(SDL_Instance *instance)
 	while (SDL_PollEvent(&ev) != 0)
 	{
 		if (ev.type == SDL_QUIT)
-			running = 1;
+			running = 1; /* quit program */
 
 		if (ev.type == SDL_KEYDOWN && ev.key.keysym.sym == SDLK_ESCAPE)
-			running = 1;
-		
+			running = 1; /*  quit program */
+
+		/* full screen handling */
 		if (ev.type == SDL_KEYDOWN && ev.key.keysym.sym == SDLK_f)
 		{
 			window_flags = SDL_GetWindowFlags(instance->window);

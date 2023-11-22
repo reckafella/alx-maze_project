@@ -4,6 +4,8 @@
 * ray_cast - cast rays and render walls, ceiling and floor
  * @instance: sdl instance
  * @maze_map: pointer to 2D maze map
+ *
+ * Return: nothing
 */
 void ray_cast(SDL_Instance *instance, int *maze_map)
 {
@@ -20,8 +22,10 @@ void ray_cast(SDL_Instance *instance, int *maze_map)
 		ray_dir.y = dir.y + plane.y * cameraX;
 		map.x = (int)(ray_pos.x), map.y = (int)(ray_pos.y);
 
-		dist_to_next.x = sqrt(1 + (pow(ray_dir.y, 2)) / pow(ray_dir.x, 2));
-		dist_to_next.y = sqrt(1 + (pow(ray_dir.x, 2)) / pow(ray_dir.y, 2));
+		dist_to_next.x = sqrt(
+				1 + (pow(ray_dir.y, 2)) / pow(ray_dir.x, 2));
+		dist_to_next.y = sqrt(
+				1 + (pow(ray_dir.x, 2)) / pow(ray_dir.y, 2));
 
 		if (ray_dir.x < 0)
 		{
@@ -31,18 +35,21 @@ void ray_cast(SDL_Instance *instance, int *maze_map)
 		else
 		{
 			step.x = 1;
-			pos_to_next.x = (map.x + 1.0 - ray_pos.x) * dist_to_next.x;
+			pos_to_next.x = (map.x + 1.0 - ray_pos.x) *
+				dist_to_next.x;
 		}
 
 		if (ray_dir.y < 0)
 		{
 			step.y = -1;
-			pos_to_next.y = (ray_pos.y - map.y) * dist_to_next.y;
+			pos_to_next.y = (ray_pos.y - map.y) *
+				dist_to_next.y;
 		}
 		else
 		{
 			step.y = 1;
-			pos_to_next.y = (map.y + 1.0 - ray_pos.y) * dist_to_next.y;
+			pos_to_next.y = (map.y + 1.0 - ray_pos.y) *
+				dist_to_next.y;
 		}
 
 		hit = 0;
@@ -68,13 +75,15 @@ void ray_cast(SDL_Instance *instance, int *maze_map)
 
 		/* calculate distance to the wall in camera direction */
 		if (side == 0)
-			dist_to_wall = (map.x - ray_pos.x + (1 - step.x) / 2) / ray_dir.x;
+			dist_to_wall = (map.x - ray_pos.x +
+					(1 - step.x) / 2) / ray_dir.x;
 		else
-			dist_to_wall = (map.y - ray_pos.y + (1 - step.y) / 2) / ray_dir.y;
+			dist_to_wall = (map.y - ray_pos.y +
+					(1 - step.y) / 2) / ray_dir.y;
 
 		/* render walls */
 		render_walls(instance, maze_map, map, ray_pos, ray_dir,
-					dist_to_wall, x, side);
+				dist_to_wall, x, side);
 	}
 	/* refresh render with the update buffer */
 	update_renderer(instance);
